@@ -1,0 +1,7 @@
+deepface-env/
+__pycache__/
+node_modules/
+.ipynb_checkpoints/
+recognize_id.py/
+face_detection_faia.ipynb/
+face.py/

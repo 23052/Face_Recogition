@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Stream</title>
+</head>
+<body>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="buttonSend" onclick="sendFrame()">Cliquez ici</button>
+    <p id="sortie1"> rfrrr </p>
+    <p id="sortie2"> rfrrr </p>
+    <script>
+        var video = document.getElementById('video');
+
+        // Obtenir l'accès à la caméra
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(function(error) {
+                    console.error('Error accessing the media devices.', error);
+                });
+        }
+
+        function sendFrame() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(function(blob) {
+                var formData = new FormData();
+                formData.append('frame', blob);
+                fetch('http://localhost:5000/stream', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();  // Assure that the server's response is handled as JSON
+                })
+                .then(data => {
+                    console.log(data); // Inspect the structure
+                    document.getElementById('sortie1').innerText = `Nom : ${data[0]}`;
+                    document.getElementById('sortie2').innerText = `Timing : ${data[1].heure}h${data[1].minute}m${data[1].seconde}s`;
+                })
+                .catch(error => {
+                    console.error('Error sending frame:', error);
+                });
+            }, 'image/jpeg');
+        }
+    </script>
+</body>
+</html>
